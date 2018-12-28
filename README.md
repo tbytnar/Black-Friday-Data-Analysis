@@ -316,7 +316,7 @@ Lets get started.
 The first step is to initialize the H2O cluster locally so we can interact with it.
 
 ```
-> localH2O <- h2o.init(nthreads = -1)
+> localH2O <- h2o.init(nthreads = -1, min_mem_size = "4096M", max_mem_size = "4096M")
 
 H2O is not running yet, starting it now...
 
@@ -326,19 +326,19 @@ Note:  In case of errors look at the following log files:
 
 java version "1.8.0_191"
 Java(TM) SE Runtime Environment (build 1.8.0_191-b12)
-Java HotSpot(TM) Client VM (build 25.191-b12, mixed mode)
+Java HotSpot(TM) 64-Bit Server VM (build 25.191-b12, mixed mode)
 
-Starting H2O JVM and connecting:  Connection successful!
+Starting H2O JVM and connecting: . Connection successful!
 
 R is connected to the H2O cluster: 
-    H2O cluster uptime:         4 seconds 745 milliseconds 
+    H2O cluster uptime:         1 seconds 415 milliseconds 
     H2O cluster timezone:       America/Chicago 
     H2O data parsing timezone:  UTC 
     H2O cluster version:        3.20.0.8 
     H2O cluster version age:    3 months and 6 days  
-    H2O cluster name:           H2O_started_from_R_tbytn_wfc501 
+    H2O cluster name:           H2O_started_from_R_tbytn_iqn886 
     H2O cluster total nodes:    1 
-    H2O cluster total memory:   0.96 GB 
+    H2O cluster total memory:   3.83 GB 
     H2O cluster total cores:    8 
     H2O cluster allowed cores:  8 
     H2O cluster healthy:        TRUE 
@@ -348,8 +348,9 @@ R is connected to the H2O cluster:
     H2O Internal Security:      FALSE 
     H2O API Extensions:         Algos, AutoML, Core V3, Core V4 
     R Version:                  R version 3.5.2 (2018-12-20) 
+
 ```
-So now the H2O cluster instance is running locally on my machine ready and waiting for me to supply data.  An AI based data modeling cluster is running on my computer! How cool is that?
+So now the H2O cluster instance is running locally on my machine ready and waiting for me to supply data.  An AI based data modeling cluster is running on my computer! How cool is that?  A note here, I learned the hard way that H2O really should be ran in 64bit Java and to avoid issues with memory, always specify the min and max memory sizes during start up.
 
 One of the most interesting things I find about R is that (almost) everything can be variables in the code.  Even H2O data sets!
 
@@ -363,8 +364,9 @@ One of the most interesting things I find about R is that (almost) everything ca
 
 Okay now that H2O has my data sets, it's time to tell it what to do with them.
 
-First I need to know what index number the Purchase column is in the training data.  Then I 
+First I need to know what index number the Purchase column is in the training data.  Then I create a couple variables (x and y) to store that index and those of the columns I want to use for modeling (Essentially everything but the ID columns and the Purchase columns).
 
+```
 colnames(train.h2o)
 
 #dependent variable (Purchase)
@@ -372,77 +374,8 @@ y.dep <- 14
 
 #independent variables (dropping ID variables)
 x.indep <- c(3:13,15:20)
+```
 
+Beginning with H2O's Random Forest implementation (I skipped the binomial Generalized Linear Model example since I'm dealing with more than two terms.)
 
-
-#Multiple Regression in H2O
-regression.model <- h2o.glm( y = y.dep, x = x.indep, training_frame = train.h2o, family = "gaussian")
-
-h2o.performance(regression.model)
-
-
-#make predictions
-predict.reg <- as.data.frame(h2o.predict(regression.model, test.h2o))
-sub_reg <- data.frame(User_ID = test$User_ID, Product_ID = test$Product_ID, Purchase =  predict.reg$predict)
-
-write.csv(sub_reg, file = "sub_reg.csv", row.names = F)
-
-
-
-
-#Random Forest
-system.time(
-  rforest.model <- h2o.randomForest(y=y.dep, x=x.indep, training_frame = train.h2o, ntrees = 1000, mtries = 3, max_depth = 4, seed = 1122)
-)
-
-h2o.performance(rforest.model)
-h2o.varimp(rforest.model)
-
-#making predictions on unseen data
-system.time(predict.rforest <- as.data.frame(h2o.predict(rforest.model, test.h2o)))
-
-#writing submission file
-sub_rf <- data.frame(User_ID = test$User_ID, Product_ID = test$Product_ID, Purchase =  predict.rforest$predict)
-write.csv(sub_rf, file = "sub_rf.csv", row.names = F)
-
-
-
-
-
-#GBM
-system.time(
-  gbm.model <- h2o.gbm(y=y.dep, x=x.indep, training_frame = train.h2o, ntrees = 1000, max_depth = 4, learn_rate = 0.01, seed = 1122)
-)
-
-h2o.performance (gbm.model)
-
-#making prediction and writing submission file
-predict.gbm <- as.data.frame(h2o.predict(gbm.model, test.h2o))
-sub_gbm <- data.frame(User_ID = test$User_ID, Product_ID = test$Product_ID, Purchase = predict.gbm$predict)
-write.csv(sub_gbm, file = "sub_gbm.csv", row.names = F)
-
-
-
-
-#deep learning models
-system.time(
-  dlearning.model <- h2o.deeplearning(y = y.dep,
-                                      x = x.indep,
-                                      training_frame = train.h2o,
-                                      epoch = 60,
-                                      hidden = c(100,100),
-                                      activation = "Rectifier",
-                                      seed = 1122
-  )
-)
-
-h2o.performance(dlearning.model)
-
-
-#making predictions
-predict.dl2 <- as.data.frame(h2o.predict(dlearning.model, test.h2o))
-
-#create a data frame and writing submission file
-sub_dlearning <- data.frame(User_ID = test$User_ID, Product_ID = test$Product_ID, Purchase = predict.dl2$predict)
-write.csv(sub_dlearning, file = "sub_dlearning_new.csv", row.names = F)
 
