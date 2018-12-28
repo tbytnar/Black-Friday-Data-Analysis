@@ -142,48 +142,71 @@ c <- list(train, test)
 combin <- rbindlist(c)
 ```
 
-#analyzing gender variable
-combin[,prop.table(table(Gender))] Gender
+Now with the data sets combined I can take another look at those columns that I noted before will need some reworking.
 
-#Age Variable
-combin[,prop.table(table(Age))]
+```
+> combin[,prop.table(table(Gender))]
+Gender
+        F         M 
+0.2470896 0.7529104 
+> 
+> #Age Variable
+> combin[,prop.table(table(Age))]
+Age
+      0-17      18-25      26-35      36-45      46-50      51-55        55+ 
+0.02722330 0.18113944 0.39942348 0.19998801 0.08329814 0.06990724 0.03902040 
+> 
+> combin[,prop.table(table(City_Category))]
+City_Category
+        A         B         C 
+0.2682823 0.4207642 0.3109535 
+> 
+> combin[,prop.table(table(Stay_In_Current_City_Years))]
+Stay_In_Current_City_Years
+        0         1         2         3        4+ 
+0.1348991 0.3527327 0.1855724 0.1728132 0.1539825 
+> 
+> length(unique(combin$Product_ID))
+[1] 3677
+> 
+> length(unique(combin$User_ID))
+[1] 5891
+```
 
-#City Category Variable
-combin[,prop.table(table(City_Category))]
+In addition though, now I know the total number of unique Product_IDs and User_IDs.  
 
-#Stay in Current Years Variable
-combin[,prop.table(table(Stay_In_Current_City_Years))]
+Let's take a closer look at the missing values from the Product_Category columns.
 
-#unique values in ID variables
-length(unique(combin$Product_ID))
+```
+> colSums(is.na(combin))
+                   User_ID                 Product_ID                     Gender                        Age 
+                         0                          0                          0                          0 
+                Occupation              City_Category Stay_In_Current_City_Years             Marital_Status 
+                         0                          0                          0                          0 
+        Product_Category_1         Product_Category_2         Product_Category_3                   Purchase 
+                         0                     245982                     545809                          0 
+```
 
-length(unique(combin$User_ID))
+Thankfully the missing values are limited to just those two columns.  Honestly this makes sense, every product will have a primary category but only some will have secondary or tertiary categories.  The trick is how we're going to handle that for data analysis.  
 
-#missing values
-colSums(is.na(combin))
-
-
-#Age vs Gender
-ggplot(combin, aes(Age, fill = Gender)) + geom_bar()
-
-#Age vs City_Category
-ggplot(combin, aes(Age, fill = City_Category)) + geom_bar()
-
-#Show CrossTable of Occupation by City_Category
-CrossTable(combin$Occupation, combin$City_Category)
-
-#create a new variable for missing values
+```
 combin[,Product_Category_2_NA := ifelse(sapply(combin$Product_Category_2, is.na) ==    TRUE,1,0)]
 combin[,Product_Category_3_NA := ifelse(sapply(combin$Product_Category_3, is.na) ==  TRUE,1,0)]
 
-#impute missing values
 combin[,Product_Category_2 := ifelse(is.na(Product_Category_2) == TRUE, "-999",  Product_Category_2)]
 combin[,Product_Category_3 := ifelse(is.na(Product_Category_3) == TRUE, "-999",  Product_Category_3)]
+```
 
-#set column level
+First I added two new columns which act as flags for when the secondary and tertiary categories are missing.  Then I replace the NA values in the original columns with a -999 (it's an integer AND it stands out when looking through the data).
+
+Now to recode the other columns.
+
+```
 levels(combin$Stay_In_Current_City_Years)[levels(combin$Stay_In_Current_City_Years) ==  "4+"] <- "4"
 
-#recoding age groups
+combin$Age <- as.numeric(combin$Age)
+
+
 levels(combin$Age)[levels(combin$Age) == "0-17"] <- 0
 levels(combin$Age)[levels(combin$Age) == "18-25"] <- 1
 levels(combin$Age)[levels(combin$Age) == "26-35"] <- 2
@@ -192,12 +215,14 @@ levels(combin$Age)[levels(combin$Age) == "46-50"] <- 4
 levels(combin$Age)[levels(combin$Age) == "51-55"] <- 5
 levels(combin$Age)[levels(combin$Age) == "55+"] <- 6
 
-#convert age to numeric
-combin$Age <- as.numeric(combin$Age)
-
-#convert Gender into numeric
 combin[, Gender := as.numeric(as.factor(Gender)) - 1]
+```
 
+Or simply put, I've replaced the value of '4+' with simply a '4' in the Stay_In_Current_City_Years column and converted the column into a numeric.  Then I assigned integer values for each of the Age ranges in the Age column, again converting it to numeric.
+
+I think it will be useful to know more about each unique user and product so I'm going to add columns related to them.
+
+```
 #User Count
 combin[, User_Count := .N, by = User_ID]
 
@@ -209,12 +234,39 @@ combin[, Mean_Purchase_Product := mean(Purchase), by = Product_ID]
 
 #Mean Purchase of User
 combin[, Mean_Purchase_User := mean(Purchase), by = User_ID]
+```
 
-#Adding dummies to City_Category 
+So now for each row in the combined data set I have added the following:
+ - User_Count = The total number of rows for this user
+ - Product_Count = The total number of rows for this product
+ - Mean_Purchase_User = The mean of Purchase amount for this user
+ - Mean_Purchase_Product = The mean of Purchase amount for this product
+
+Lastly I use the dummies package to break out the City_Category column into three columns (one for each of the categories).  This will make that data easier to work with in numeric (binary?) format.
+
+```
 combin <- dummy.data.frame(combin, names = c("City_Category"), sep = "_")
+```
 
-#check classes of all variables
-sapply(combin, class)
+Now I think all of my data points are in place, time to double check and make sure they're in the correct formats.
+
+```
+> sapply(combin, class)
+                   User_ID                 Product_ID                     Gender                        Age 
+                 "integer"                   "factor"                  "numeric"                  "numeric" 
+                Occupation            City_Category_A            City_Category_B            City_Category_C 
+                 "integer"                  "integer"                  "integer"                  "integer" 
+Stay_In_Current_City_Years             Marital_Status         Product_Category_1         Product_Category_2 
+                  "factor"                  "integer"                  "integer"                "character" 
+        Product_Category_3                   Purchase      Product_Category_2_NA      Product_Category_3_NA 
+               "character"                  "numeric"                  "numeric"                  "numeric" 
+                User_Count              Product_Count      Mean_Purchase_Product         Mean_Purchase_User 
+                 "integer"                  "integer"                  "numeric"                  "numeric" 
+```
+
+
+
+
 
 #converting Product Category 2 & 3
 combin$Product_Category_2 <- as.integer(combin$Product_Category_2)
