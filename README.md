@@ -123,11 +123,15 @@ I can also already see that Product_Category_2 and Product_Category_3 contain 'N
                                                                 NA's   :72344      NA's   :162562   
 ```
 
-Summarizing the data doesn't give me a whole lot more than I already knew but there is some interesting things to note here overall:
+The most important thing learned from summarizing the two data sets is that the training data in the Product_Category_1 columns has a max of 20 (whereas the test data only goes to 18), suggesting that there are categories 19 and 20 in addition to those that are containined in the test data set.  This will have to get taken care of later.
+
+There is some other interesting things to note here overall:
 - The Gender with the most purchases is Male
 - The most popular product is P00265242
 - The Age group witht he most purchases is 26-35
 - The City_Category with the most purchases is B
+
+
 
 I'd like to be able to drill down into all of this further and see how these rankings relate with one another.
 
@@ -285,32 +289,82 @@ Stay_In_Current_City_Years             Marital_Status         Product_Category_1
                  "integer"                  "integer"                  "numeric"                  "numeric" 
 ```
 
-That's much better.  Let's split the dataset back up into training and testing data we're ready to start building our model(s)!
+That's much better.  Let's split the dataset back up into training and testing data.
 
 ```
 c.train <- combin[1:nrow(train),]
 c.test <- combin[-(1:nrow(train)),]
 ```
 
+I mentioned earlier that Product_Category_1 has values 19 and 20 in the training data but not in the testing data.  So I need to drop rows containing those values so I don't skew the analysis.
+
+```
+c.train <- c.train[c.train$Product_Category_1 <= 18,]
+```
+
+Okay finally I'm ready to start building our model(s)!
+
 ### Data Modeling using H2O
 Now I want to be very clear here, not only am I new to Data Analysis using R but this is my first attempt at using H2O entirely.  I first heard about H2O from a colleague and based on his description I became very interested in it's capabilities and ease of use.  So of course I wanted to learn more about it.
 
+[[[[ADD MORE ABOUT H2O HERE]]]]
+
 I loosely applied the examples (to the Black Friday data) from here: https://github.com/h2oai/h2o-tutorials/blob/master/h2o-open-tour-2016/chicago/intro-to-h2o.R
 
+Lets get started.
 
+The first step is to initialize the H2O cluster locally so we can interact with it.
 
-c.train <- c.train[c.train$Product_Category_1 <= 18,]
+```
+> localH2O <- h2o.init(nthreads = -1)
 
-localH2O <- h2o.init(nthreads = -1)
+H2O is not running yet, starting it now...
 
+Note:  In case of errors look at the following log files:
+    C:\Users\tbytn\AppData\Local\Temp\Rtmps9FeTP/h2o_tbytn_started_from_r.out
+    C:\Users\tbytn\AppData\Local\Temp\Rtmps9FeTP/h2o_tbytn_started_from_r.err
 
-h2o.init()
+java version "1.8.0_191"
+Java(TM) SE Runtime Environment (build 1.8.0_191-b12)
+Java HotSpot(TM) Client VM (build 25.191-b12, mixed mode)
 
-#data to h2o cluster
-train.h2o <- as.h2o(c.train)
-test.h2o <- as.h2o(c.test)
+Starting H2O JVM and connecting:  Connection successful!
 
-#check column index number
+R is connected to the H2O cluster: 
+    H2O cluster uptime:         4 seconds 745 milliseconds 
+    H2O cluster timezone:       America/Chicago 
+    H2O data parsing timezone:  UTC 
+    H2O cluster version:        3.20.0.8 
+    H2O cluster version age:    3 months and 6 days  
+    H2O cluster name:           H2O_started_from_R_tbytn_wfc501 
+    H2O cluster total nodes:    1 
+    H2O cluster total memory:   0.96 GB 
+    H2O cluster total cores:    8 
+    H2O cluster allowed cores:  8 
+    H2O cluster healthy:        TRUE 
+    H2O Connection ip:          localhost 
+    H2O Connection port:        54321 
+    H2O Connection proxy:       NA 
+    H2O Internal Security:      FALSE 
+    H2O API Extensions:         Algos, AutoML, Core V3, Core V4 
+    R Version:                  R version 3.5.2 (2018-12-20) 
+```
+So now the H2O cluster instance is running locally on my machine ready and waiting for me to supply data.  An AI based data modeling cluster is running on my computer! How cool is that?
+
+One of the most interesting things I find about R is that (almost) everything can be variables in the code.  Even H2O data sets!
+
+```
+> train.h2o <- as.h2o(c.train)
+  |====================================================================================================| 100%
+> test.h2o <- as.h2o(c.test)
+  |====================================================================================================| 100%
+>
+```
+
+Okay now that H2O has my data sets, it's time to tell it what to do with them.
+
+First I need to know what index number the Purchase column is in the training data.  Then I 
+
 colnames(train.h2o)
 
 #dependent variable (Purchase)
