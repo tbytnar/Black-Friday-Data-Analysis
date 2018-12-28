@@ -54,12 +54,73 @@ Classes ‘data.table’ and 'data.frame':	550068 obs. of  12 variables:
  $ Product_Category_3        : int  NA 14 NA NA NA NA 17 NA NA NA ...
  $ Purchase                  : int  8370 15200 1422 1057 7969 15227 19215 15854 15686 7871 ...
  - attr(*, ".internal.selfref")=<externalptr> 
+ 
+ > str(test)
+Classes ‘data.table’ and 'data.frame':	233599 obs. of  11 variables:
+ $ User_ID                   : int  1000004 1000009 1000010 1000010 1000011 1000013 1000013 1000013 1000015 1000022 ...
+ $ Product_ID                : Factor w/ 3491 levels "P00000142","P00000242",..: 1145 995 2673 1300 520 3241 1400 3438 1459 639 ...
+ $ Gender                    : Factor w/ 2 levels "F","M": 2 2 1 1 1 2 2 2 2 2 ...
+ $ Age                       : Factor w/ 7 levels "0-17","18-25",..: 5 3 4 4 3 5 5 5 3 2 ...
+ $ Occupation                : int  7 17 1 1 1 1 1 1 7 15 ...
+ $ City_Category             : Factor w/ 3 levels "A","B","C": 2 3 2 2 3 3 3 3 1 1 ...
+ $ Stay_In_Current_City_Years: Factor w/ 5 levels "0","1","2","3",..: 3 1 5 5 2 4 4 4 2 5 ...
+ $ Marital_Status            : int  1 0 1 1 0 1 1 1 0 0 ...
+ $ Product_Category_1        : int  1 3 5 4 4 2 1 2 10 5 ...
+ $ Product_Category_2        : int  11 5 14 9 5 3 11 4 13 14 ...
+ $ Product_Category_3        : int  NA NA NA NA 12 15 15 9 16 NA ...
+ - attr(*, ".internal.selfref")=<externalptr> 
 ```
 
-And repeat
+The first thing to note is that the testing data is missing the Purchase column.  That makes sense as they're wanting us to predict it.
+
+The Gender, Age, City_Category and Stay_In_Current_City_Years columns all have character data in them which I'll need to recode into integers for effective analysis.
+
+I can also already see that Product_Category_2 and Product_Category_3 contain 'NA' values.  This will have to get recoded as well and I'll likely need to add a column to flag this later.
 
 ```
-until finished
+> summary (train)
+    User_ID            Product_ID     Gender        Age           Occupation     City_Category
+ Min.   :1000001   P00265242:  1880   F:135809   0-17 : 15102   Min.   : 0.000   A:147720     
+ 1st Qu.:1001516   P00025442:  1615   M:414259   18-25: 99660   1st Qu.: 2.000   B:231173     
+ Median :1003077   P00110742:  1612              26-35:219587   Median : 7.000   C:171175     
+ Mean   :1003029   P00112142:  1562              36-45:110013   Mean   : 8.077                
+ 3rd Qu.:1004478   P00057642:  1470              46-50: 45701   3rd Qu.:14.000                
+ Max.   :1006040   P00184942:  1440              51-55: 38501   Max.   :20.000                
+                   (Other)  :540489              55+  : 21504                                 
+ Stay_In_Current_City_Years Marital_Status   Product_Category_1 Product_Category_2 Product_Category_3
+ 0 : 74398                  Min.   :0.0000   Min.   : 1.000     Min.   : 2.00      Min.   : 3.0      
+ 1 :193821                  1st Qu.:0.0000   1st Qu.: 1.000     1st Qu.: 5.00      1st Qu.: 9.0      
+ 2 :101838                  Median :0.0000   Median : 5.000     Median : 9.00      Median :14.0      
+ 3 : 95285                  Mean   :0.4097   Mean   : 5.404     Mean   : 9.84      Mean   :12.7      
+ 4+: 84726                  3rd Qu.:1.0000   3rd Qu.: 8.000     3rd Qu.:15.00      3rd Qu.:16.0      
+                            Max.   :1.0000   Max.   :20.000     Max.   :18.00      Max.   :18.0      
+                                                                NA's   :173638     NA's   :383247    
+    Purchase    
+ Min.   :   12  
+ 1st Qu.: 5823  
+ Median : 8047  
+ Mean   : 9264  
+ 3rd Qu.:12054  
+ Max.   :23961  
+                
+> 
+> summary (test)
+    User_ID            Product_ID     Gender        Age          Occupation     City_Category
+ Min.   :1000001   P00265242:   829   F: 57827   0-17 : 6232   Min.   : 0.000   A:62524      
+ 1st Qu.:1001527   P00112142:   717   M:175772   18-25:42293   1st Qu.: 2.000   B:98566      
+ Median :1003070   P00025442:   695              26-35:93428   Median : 7.000   C:72509      
+ Mean   :1003029   P00110742:   680              36-45:46711   Mean   : 8.085                
+ 3rd Qu.:1004477   P00046742:   646              46-50:19577   3rd Qu.:14.000                
+ Max.   :1006040   P00184942:   626              51-55:16283   Max.   :20.000                
+                   (Other)  :229406              55+  : 9075                                 
+ Stay_In_Current_City_Years Marital_Status   Product_Category_1 Product_Category_2 Product_Category_3
+ 0 :31318                   Min.   :0.0000   Min.   : 1.000     Min.   : 2.00      Min.   : 3.00     
+ 1 :82604                   1st Qu.:0.0000   1st Qu.: 1.000     1st Qu.: 5.00      1st Qu.: 9.00     
+ 2 :43589                   Median :0.0000   Median : 5.000     Median : 9.00      Median :14.00     
+ 3 :40143                   Mean   :0.4101   Mean   : 5.277     Mean   : 9.85      Mean   :12.67     
+ 4+:35945                   3rd Qu.:1.0000   3rd Qu.: 8.000     3rd Qu.:15.00      3rd Qu.:16.00     
+                            Max.   :1.0000   Max.   :18.000     Max.   :18.00      Max.   :18.00     
+                                                                NA's   :72344      NA's   :162562   
 ```
 
 End with an example of getting some data out of the system or using it for a little demo
