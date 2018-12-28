@@ -376,6 +376,138 @@ y.dep <- 14
 x.indep <- c(3:13,15:20)
 ```
 
-Beginning with H2O's Random Forest implementation (I skipped the binomial Generalized Linear Model example since I'm dealing with more than two terms.)
+Beginning with H2O's Generalized Linear Model example (NOTE that I'm using the Gaussian family here since we're dealing with a Regression problem).  In the first model I take the default settings, in the second I'm telling H2O to enable lambda_search (to be honest I'm not sure what this does but again I'm following the examples.)
 
+```
+> glm_fit1 <- h2o.glm(x = x, y = y, training_frame = train.h2o, model_id = "glm_fit1", family = "gaussian")
+  |==================================================================================================================| 100%
+> glm_fit2 <- h2o.glm(x = x, y = y, training_frame = train.h2o, model_id = "glm_fit2", family = "gaussian", lambda_search = TRUE)
+  |==================================================================================================================| 100%
+
+> h2o.performance(glm_fit1)
+
+H2ORegressionMetrics: glm
+** Reported on training data. **
+
+MSE:  16710563
+RMSE:  4087.856
+MAE:  3219.644
+RMSLE:  0.5782911
+Mean Residual Deviance :  16710563
+R^2 :  0.3261543
+Null Deviance :1.353804e+13
+Null D.o.F. :545914
+Residual Deviance :9.122547e+12
+Residual D.o.F. :545898
+AIC :10628689
+```
+
+The first model produced a RMSE (Root Mean Squared Error) value of 4087.856.  This is the value that Analytics Vidhya bases their leaderboards on (the lower the better) so I'm going to continue tuning around that score.  
+
+Lets see how enabling Lambda Search affects the score...
+
+```
+> glm_perf2
+H2ORegressionMetrics: glm
+** Reported on training data. **
+
+MSE:  24795007
+RMSE:  4979.458
+MAE:  4045.527
+RMSLE:  0.6664649
+Mean Residual Deviance :  24795007
+R^2 :  0.0001528986
+Null Deviance :1.353804e+13
+Null D.o.F. :545914
+Residual Deviance :1.353597e+13
+Residual D.o.F. :545913
+AIC :10844078
+
+```
+
+That's a bit of a difference there.  I'm making it a personal mission to go back and discovering what is going on behind the scenes there later.
+
+For now it's time for H2O's Random Forrest implementation
+
+Again for the first model I'm just accepting the default configuration for random forrest.  For the second model I'll admit I struggled quite a bit with memory issues on my machine.  After some digging around and some experimentation I found a configuration that worked out pretty well.
+
+```
+> rf_fit1 <- h2o.randomForest(y=y, x=x, training_frame = train.h2o, model_id = "rf_fit1", seed = 1)
+ |==================================================================================================================| 100%
+> rf_fit2 <- h2o.randomForest(y=y, x=x, training_frame = train.h2o, model_id = "rf_fit2", ntrees = 1000, mtries = 3, max_depth = 4, seed = 1)
+ |==================================================================================================================| 100%
+```
+
+Now lets see how they fared
+
+```
+> rf_perf1 <- h2o.performance(rf_fit1)
+> 
+> rf_perf2 <- h2o.performance(rf_fit2)
+> 
+> rf_perf1
+H2ORegressionMetrics: drf
+** Reported on training data. **
+** Metrics reported on Out-Of-Bag training samples **
+
+MSE:  6343484
+RMSE:  2518.628
+MAE:  1849.534
+RMSLE:  0.3223274
+Mean Residual Deviance :  6343484
+
+> rf_perf2
+H2ORegressionMetrics: drf
+** Reported on training data. **
+** Metrics reported on Out-Of-Bag training samples **
+
+MSE:  10510405
+RMSE:  3241.975
+MAE:  2496.153
+RMSLE:  0.5031781
+Mean Residual Deviance :  10510405
+```
+
+The first model (based on default config) did incredibly well actually!  With an RMSE score of 2518.628 that's quite a jump from the GLM model above.  My second model (with tweaked config) did better than GLM but worse than the default.  I guess it's worth mentioning that some more experimentation should produce better results but I'm going to move on for now.
+
+Next up is H2O's GBM (Gradient Boosting Machine).  Once again, I'm configuring my first model with the default settings for GBM, then in my second model I'm configuring with some tips from the internet mixed with some experimentation.
+
+```
+> gbm.fit1 <- h2o.gbm(y=y, x=x, training_frame = train.h2o, model_id = "gbm_fit1", seed = 1)
+  |=========================================================================================================================| 100%
+> gbm.fit2 <- h2o.gbm(y=y, x=x, training_frame = train.h2o, model_id = "gbm_fit2", ntrees = 1000, max_depth = 4, learn_rate = 0.01, seed = 1122)
+  |=========================================================================================================================| 100%
+```
+
+On to the scores!
+
+```
+> gbm_perf1 <- h2o.performance(gbm_fit1)
+> 
+> gbm_perf2 <- h2o.performance(gbm_fit2)
+> 
+> gbm_perf1
+H2ORegressionMetrics: gbm
+** Reported on training data. **
+
+MSE:  6334275
+RMSE:  2516.799
+MAE:  1863.99
+RMSLE:  0.3290164
+Mean Residual Deviance :  6334275
+
+> gbm_perf2
+H2ORegressionMetrics: gbm
+** Reported on training data. **
+
+MSE:  6321280
+RMSE:  2514.216
+MAE:  1859.895
+RMSLE:  NaN
+Mean Residual Deviance :  6321280
+```
+
+Both scores are pretty similar 2516.799 for the first model and 2514.216 for the second.  This time my experimentation paid off as this is my best score yet.  
+
+Okay truth be told I saved the best for last.  H2O offers a Deep Learning model and I have to say I was pretty excited to try it out.
 
