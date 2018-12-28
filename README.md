@@ -1,20 +1,126 @@
 # Black Friday Data Analysis
-This is a walkthrough of my analysis of the Black Friday (2018) data from Analytis Vidhya: https://www.analyticsvidhya.com/blog/2016/05/h2o-data-table-build-models-large-data-sets/
 
+This is a walkthrough of my analysis of the Black Friday (2018) data from Analytics Vidhya: https://datahack.analyticsvidhya.com/contest/black-friday/
 
-#install all required packages
+I wanted to try my hand at analyzing real world sales data and came across the Black Firday 2018 data from Analytics Vidhya.  
+
+## Environment
+
+Everything here is built in R 3.5.2 "Eggshell Igloo" using RStudio on my home gaming pc (this way I'm not waiting around all day for models to execute).
+
+### Required Packages
+
+I tend to load all of my dependencies at the beginning of my scripts.
+
+```
 install.packages("data.table")
 install.packages("ggplot2")
 install.packages("gmodels")
 install.packages("dummies")
 install.packages("h2o")
 
-#load all required packages
 library(data.table)
 library(ggplot2)
 library(gmodels)
 library(dummies)
 library(h2o)
+```
+
+### Studying the data
+
+First things first, I read in the training and testing data using fread so that they are loaded as data tables.  Then (arguably) the most critical step is studying the data and determining what data is useful for analysis.
+
+```
+> train <- fread("train.csv", stringsAsFactors = T)
+> test <- fread("test.csv", stringsAsFactors = T)
+
+
+> dim(train)
+[1] 550068     12
+> dim(test)
+[1] 233599     11
+> str(train)
+Classes ‘data.table’ and 'data.frame':	550068 obs. of  12 variables:
+ $ User_ID                   : int  1000001 1000001 1000001 1000001 1000002 1000003 1000004 1000004 1000004 1000005 ...
+ $ Product_ID                : Factor w/ 3631 levels "P00000142","P00000242",..: 673 2377 853 829 2735 1832 1746 3321 3605 2632 ...
+ $ Gender                    : Factor w/ 2 levels "F","M": 1 1 1 1 2 2 2 2 2 2 ...
+ $ Age                       : Factor w/ 7 levels "0-17","18-25",..: 1 1 1 1 7 3 5 5 5 3 ...
+ $ Occupation                : int  10 10 10 10 16 15 7 7 7 20 ...
+ $ City_Category             : Factor w/ 3 levels "A","B","C": 1 1 1 1 3 1 2 2 2 1 ...
+ $ Stay_In_Current_City_Years: Factor w/ 5 levels "0","1","2","3",..: 3 3 3 3 5 4 3 3 3 2 ...
+ $ Marital_Status            : int  0 0 0 0 0 0 1 1 1 1 ...
+ $ Product_Category_1        : int  3 1 12 12 8 1 1 1 1 8 ...
+ $ Product_Category_2        : int  NA 6 NA 14 NA 2 8 15 16 NA ...
+ $ Product_Category_3        : int  NA 14 NA NA NA NA 17 NA NA NA ...
+ $ Purchase                  : int  8370 15200 1422 1057 7969 15227 19215 15854 15686 7871 ...
+ - attr(*, ".internal.selfref")=<externalptr> 
+```
+
+And repeat
+
+```
+until finished
+```
+
+End with an example of getting some data out of the system or using it for a little demo
+
+## Running the tests
+
+Explain how to run the automated tests for this system
+
+### Break down into end to end tests
+
+Explain what these tests test and why
+
+```
+Give an example
+```
+
+### And coding style tests
+
+Explain what these tests test and why
+
+```
+Give an example
+```
+
+## Deployment
+
+Add additional notes about how to deploy this on a live system
+
+## Built With
+
+* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
+* [Maven](https://maven.apache.org/) - Dependency Management
+* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+
+## Contributing
+
+Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
+
+## Versioning
+
+We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
+
+## Authors
+
+* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
+
+See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
+
+## Acknowledgments
+
+* Hat tip to anyone whose code was used
+* Inspiration
+* etc
+
+
+
+
 
 #load data using fread
 train <- fread("train.csv", stringsAsFactors = T)
