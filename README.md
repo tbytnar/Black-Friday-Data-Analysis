@@ -8,7 +8,7 @@ I wanted to try my hand at analyzing real world sales data and came across the B
 
 Everything here is built in R 3.5.2 "Eggshell Igloo" using RStudio on my home gaming pc (this way I'm not waiting around all day for models to execute).
 
-### Required Packages
+## Required Packages
 
 I tend to load all of my dependencies at the beginning of my scripts.
 
@@ -26,7 +26,7 @@ library(dummies)
 library(h2o)
 ```
 
-### Studying the data
+## Studying the data
 
 First things first, I read in the training and testing data using fread so that they are loaded as data tables.  Then (arguably) the most critical step is studying the data and determining what data is useful for analysis.
 
@@ -131,7 +131,7 @@ There is some other interesting things to note here overall:
 - The Age group witht he most purchases is 26-35
 - The City_Category with the most purchases is B
 
-
+## Cleansing the Data
 
 I'd like to be able to drill down into all of this further and see how these rankings relate with one another.
 
@@ -226,6 +226,7 @@ levels(combin$Age)[levels(combin$Age) == "55+"] <- 6
 combin[, Gender := as.numeric(as.factor(Gender)) - 1]
 ```
 
+### Adding Useful Data
 I think it will be useful to know more about each unique user and product so I'm going to add columns related to them.
 
 ```
@@ -253,7 +254,7 @@ Lastly I use the dummies package to break out the City_Category column into thre
 ```
 combin <- dummy.data.frame(combin, names = c("City_Category"), sep = "_")
 ```
-
+### Further Cleansing
 Now I think all of my data points are in place, time to double check and make sure they're in the correct formats.
 
 ```
@@ -304,14 +305,14 @@ c.train <- c.train[c.train$Product_Category_1 <= 18,]
 
 Okay finally I'm ready to start building our model(s)!
 
-### Data Modeling using H2O
+## Data Modeling using H2O
 Now I want to be very clear here, not only am I new to Data Analysis using R but this is my first attempt at using H2O entirely.  I first heard about H2O from a colleague and based on his description I became very interested in it's capabilities and ease of use.  So of course I wanted to learn more about it.
-
-[[[[ADD MORE ABOUT H2O HERE]]]]
 
 I loosely applied the examples (to the Black Friday data) from here: https://github.com/h2oai/h2o-tutorials/blob/master/h2o-open-tour-2016/chicago/intro-to-h2o.R
 
 Lets get started.
+
+### Getting Started
 
 The first step is to initialize the H2O cluster locally so we can interact with it.
 
@@ -376,6 +377,7 @@ y.dep <- 14
 x.indep <- c(3:13,15:20)
 ```
 
+### Generalized Linear Modeling (GLM)
 Beginning with H2O's Generalized Linear Model example (NOTE that I'm using the Gaussian family here since we're dealing with a Regression problem).  In the first model I take the default settings, in the second I'm telling H2O to enable lambda_search (to be honest I'm not sure what this does but again I'm following the examples.)
 
 ```
@@ -427,8 +429,7 @@ AIC :10844078
 
 That's a bit of a difference there.  I'm making it a personal mission to go back and discovering what is going on behind the scenes there later.
 
-For now it's time for H2O's Random Forrest implementation
-
+### Random Forest Modeling
 Again for the first model I'm just accepting the default configuration for random forrest.  For the second model I'll admit I struggled quite a bit with memory issues on my machine.  After some digging around and some experimentation I found a configuration that worked out pretty well.
 
 ```
@@ -470,7 +471,8 @@ Mean Residual Deviance :  10510405
 
 The first model (based on default config) did incredibly well actually!  With an RMSE score of 2518.628 that's quite a jump from the GLM model above.  My second model (with tweaked config) did better than GLM but worse than the default.  I guess it's worth mentioning that some more experimentation should produce better results but I'm going to move on for now.
 
-Next up is H2O's GBM (Gradient Boosting Machine).  Once again, I'm configuring my first model with the default settings for GBM, then in my second model I'm configuring with some tips from the internet mixed with some experimentation.
+### Gradient Boosting Machine
+Once again, I'm configuring my first model with the default settings for GBM, then in my second model I'm configuring with some tips from the internet mixed with some experimentation.
 
 ```
 > gbm.fit1 <- h2o.gbm(y=y, x=x, training_frame = train.h2o, model_id = "gbm_fit1", seed = 1)
@@ -509,6 +511,7 @@ Mean Residual Deviance :  6321280
 
 Both scores are pretty similar 2516.799 for the first model and 2514.216 for the second.  This time my experimentation paid off as this is my best score yet.  
 
+### Deep Learning Modeling
 Okay truth be told I saved the best for last.  H2O offers a Deep Learning model and I have to say I was pretty excited to try it out.  H2O's Deep Learning algorithm is a multilayer feed-forward artificial neural network. 
 
 Like all the other examples I started off with the default configuration for my first model.  The second model comes from examples on the internet (I'm not even going to pretend that I knew what I was doing here).  From my rudementary understanding of neural networks I know I'm adjusting the different layers properties but that's it.
@@ -564,6 +567,10 @@ write.csv(submission, file = "submission.csv", row.names = F)
 
 So all in all I'd say I did okay.  My predicted submission scored 2547.8684847588 putting me at rank 345!  Not too shabby for a greenhorn like me.  (For the record, first place is currently sitting at a 2405.9283989138
 
+
+## Afterthoughts
+H2O definitely makes things easier from a perspective of rapid data analysis.  Some liberties are taken and assumptions are made of course (at no point did I have to look at R values, what?!) and by no means should it be considered an end all be all for these types of problems. 
+
 There's a lot that I've learned in this exercise:
  -Working with sales data is pretty easy actually once you get your data columns setup correctly.
  -H2O needs to be ran on 64bit Java for memory optimizations and stability.
@@ -573,5 +580,5 @@ Things I know that I need to learn from this exercise:
  -There's still a lot of terminology that I need to better understand (columns vs variables, AUC, AUROC, etc...)
  -What does Lambda Search mean in GLM
  -Spend more time with the configuration options in GBM and Deep Learning (ESPECIALLY Deep Learning!)
- 
+
 Thank you for reading through my analysis!
