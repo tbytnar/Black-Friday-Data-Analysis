@@ -509,5 +509,69 @@ Mean Residual Deviance :  6321280
 
 Both scores are pretty similar 2516.799 for the first model and 2514.216 for the second.  This time my experimentation paid off as this is my best score yet.  
 
-Okay truth be told I saved the best for last.  H2O offers a Deep Learning model and I have to say I was pretty excited to try it out.
+Okay truth be told I saved the best for last.  H2O offers a Deep Learning model and I have to say I was pretty excited to try it out.  H2O's Deep Learning algorithm is a multilayer feed-forward artificial neural network. 
 
+Like all the other examples I started off with the default configuration for my first model.  The second model comes from examples on the internet (I'm not even going to pretend that I knew what I was doing here).  From my rudementary understanding of neural networks I know I'm adjusting the different layers properties but that's it.
+
+```
+> dl_fit1 <- h2o.deeplearning(x = x, y = y, training_frame = train.h2o, model_id = "dl_fit1", seed = 1)
+  |=========================================================================================================================| 100%
+> 
+> dl_fit2 <- h2o.deeplearning(y = y, x = x, training_frame = train.h2o, model_id = "dl_fit1", epoch = 60, hidden = c(100,100), activation = "Rectifier", seed = 1)
+  |=========================================================================================================================| 100%
+```
+
+And lets see how they did...
+
+```
+> dl_perf1 <- h2o.performance(dl_fit1)
+> 
+> dl_perf2 <- h2o.performance(dl_fit2)
+> 
+> dl_perf1
+H2ORegressionMetrics: deeplearning
+** Reported on training data. **
+** Metrics reported on temporary training frame with 9893 samples **
+
+MSE:  6164009
+RMSE:  2482.742
+MAE:  1843.41
+RMSLE:  NaN
+Mean Residual Deviance :  6164009
+
+> dl_perf2
+H2ORegressionMetrics: deeplearning
+** Reported on training data. **
+** Metrics reported on temporary training frame with 9893 samples **
+
+MSE:  5992514
+RMSE:  2447.961
+MAE:  1814.931
+RMSLE:  NaN
+Mean Residual Deviance :  5992514
+```
+
+And there you have it.  By default the deep learning model beat my best score so far by about 30 points with an RMSE score of 2482.742.  But look at the score from my customized deep learning model, 2447.961!
+
+Now it's time to submit to Analytics Vidhya and see how this did.
+
+```
+dl_predict <- as.data.frame(h2o.predict(dl_fit2, test.h2o))
+
+submission <- data.frame(User_ID = test$User_ID, Product_ID = test$Product_ID, Purchase = predict.dl2$predict)
+write.csv(submission, file = "submission.csv", row.names = F)
+```
+
+So all in all I'd say I did okay.  My predicted submission scored 2547.8684847588 putting me at rank 345!  Not too shabby for a greenhorn like me.  (For the record, first place is currently sitting at a 2405.9283989138
+
+There's a lot that I've learned in this exercise:
+ -Working with sales data is pretty easy actually once you get your data columns setup correctly.
+ -H2O needs to be ran on 64bit Java for memory optimizations and stability.
+ -H2O's default modeling options are pretty good right out of the box.  Very impressive!
+
+Things I know that I need to learn from this exercise:
+ -There's still a lot of terminology that I need to better understand (columns vs variables, AUC, AUROC, etc...)
+ -What does Lambda Search mean in GLM
+ -Spend more time with the configuration options in GBM and Deep Learning (ESPECIALLY Deep Learning!)
+ 
+Thank you for reading through my analysis!
