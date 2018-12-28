@@ -189,6 +189,10 @@ Let's take a closer look at the missing values from the Product_Category columns
 
 Thankfully the missing values are limited to just those two columns.  Honestly this makes sense, every product will have a primary category but only some will have secondary or tertiary categories.  The trick is how we're going to handle that for data analysis.  
 
+### Recoding the Data
+
+First I add two new columns which act as flags for when the secondary and tertiary categories are missing.  Then I replace the NA values in the original columns with a -999 (it's an integer AND it stands out when looking through the data).
+
 ```
 combin[,Product_Category_2_NA := ifelse(sapply(combin$Product_Category_2, is.na) ==    TRUE,1,0)]
 combin[,Product_Category_3_NA := ifelse(sapply(combin$Product_Category_3, is.na) ==  TRUE,1,0)]
@@ -197,9 +201,9 @@ combin[,Product_Category_2 := ifelse(is.na(Product_Category_2) == TRUE, "-999", 
 combin[,Product_Category_3 := ifelse(is.na(Product_Category_3) == TRUE, "-999",  Product_Category_3)]
 ```
 
-First I added two new columns which act as flags for when the secondary and tertiary categories are missing.  Then I replace the NA values in the original columns with a -999 (it's an integer AND it stands out when looking through the data).
-
 Now to recode the other columns.
+
+Or more simply put, I replace the value of '4+' with simply a '4' in the Stay_In_Current_City_Years column and converted the column into a numeric.  Then I assigned integer values for each of the Age ranges in the Age column, again converting it to numeric.
 
 ```
 levels(combin$Stay_In_Current_City_Years)[levels(combin$Stay_In_Current_City_Years) ==  "4+"] <- "4"
@@ -218,8 +222,6 @@ levels(combin$Age)[levels(combin$Age) == "55+"] <- 6
 combin[, Gender := as.numeric(as.factor(Gender)) - 1]
 ```
 
-Or simply put, I've replaced the value of '4+' with simply a '4' in the Stay_In_Current_City_Years column and converted the column into a numeric.  Then I assigned integer values for each of the Age ranges in the Age column, again converting it to numeric.
-
 I think it will be useful to know more about each unique user and product so I'm going to add columns related to them.
 
 ```
@@ -236,7 +238,7 @@ combin[, Mean_Purchase_Product := mean(Purchase), by = Product_ID]
 combin[, Mean_Purchase_User := mean(Purchase), by = User_ID]
 ```
 
-So now for each row in the combined data set I have added the following:
+Now for each row in the combined data set I have added the following:
  - User_Count = The total number of rows for this user
  - Product_Count = The total number of rows for this product
  - Mean_Purchase_User = The mean of Purchase amount for this user
@@ -264,18 +266,37 @@ Stay_In_Current_City_Years             Marital_Status         Product_Category_1
                  "integer"                  "integer"                  "numeric"                  "numeric" 
 ```
 
+Oh yeah, Product_Category_2 and Product_Category_3 are still "Character" columns, let me fix that real quick.
 
-
-
-
-#converting Product Category 2 & 3
+```
 combin$Product_Category_2 <- as.integer(combin$Product_Category_2)
 combin$Product_Category_3 <- as.integer(combin$Product_Category_3)
 
+> sapply(combin, class)
+                   User_ID                 Product_ID                     Gender                        Age 
+                 "integer"                   "factor"                  "numeric"                  "numeric" 
+                Occupation            City_Category_A            City_Category_B            City_Category_C 
+                 "integer"                  "integer"                  "integer"                  "integer" 
+Stay_In_Current_City_Years             Marital_Status         Product_Category_1         Product_Category_2 
+                  "factor"                  "integer"                  "integer"                  "integer" 
+        Product_Category_3                   Purchase      Product_Category_2_NA      Product_Category_3_NA 
+                 "integer"                  "numeric"                  "numeric"                  "numeric" 
+                User_Count              Product_Count      Mean_Purchase_Product         Mean_Purchase_User 
+                 "integer"                  "integer"                  "numeric"                  "numeric" 
+```
 
-#Divide into train and test
+That's much better.  Let's split the dataset back up into training and testing data we're ready to start building our model(s)!
+
+```
 c.train <- combin[1:nrow(train),]
 c.test <- combin[-(1:nrow(train)),]
+```
+
+### Data Modeling using H2O
+Now I want to be very clear here, not only am I new to Data Analysis using R but this is my first attempt at using H2O entirely.  I first heard about H2O from a colleague and based on his description I became very interested in it's capabilities and ease of use.  So of course I wanted to learn more about it.
+
+I loosely applied the examples (to the Black Friday data) from here: https://github.com/h2oai/h2o-tutorials/blob/master/h2o-open-tour-2016/chicago/intro-to-h2o.R
+
 
 
 c.train <- c.train[c.train$Product_Category_1 <= 18,]
