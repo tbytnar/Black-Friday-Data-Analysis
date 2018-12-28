@@ -123,90 +123,24 @@ I can also already see that Product_Category_2 and Product_Category_3 contain 'N
                                                                 NA's   :72344      NA's   :162562   
 ```
 
-End with an example of getting some data out of the system or using it for a little demo
+Summarizing the data doesn't give me a whole lot more than I already knew but there is some interesting things to note here overall:
+- The Gender with the most purchases is Male
+- The most popular product is P00265242
+- The Age group witht he most purchases is 26-35
+- The City_Category with the most purchases is B
 
-## Running the tests
+I'd like to be able to drill down into all of this further and see how these rankings relate with one another.
 
-Explain how to run the automated tests for this system
+### Combining the Data Sets
 
-### Break down into end to end tests
-
-Explain what these tests test and why
-
-```
-Give an example
-```
-
-### And coding style tests
-
-Explain what these tests test and why
+To save on redundant work, I'll first combine the datasets
 
 ```
-Give an example
-```
-
-## Deployment
-
-Add additional notes about how to deploy this on a live system
-
-## Built With
-
-* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [Maven](https://maven.apache.org/) - Dependency Management
-* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
-
-## Contributing
-
-Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
-
-## Versioning
-
-We use [SemVer](http://semver.org/) for versioning. For the versions available, see the [tags on this repository](https://github.com/your/project/tags). 
-
-## Authors
-
-* **Billie Thompson** - *Initial work* - [PurpleBooth](https://github.com/PurpleBooth)
-
-See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details
-
-## Acknowledgments
-
-* Hat tip to anyone whose code was used
-* Inspiration
-* etc
-
-
-
-
-
-#load data using fread
-train <- fread("train.csv", stringsAsFactors = T)
-test <- fread("test.csv", stringsAsFactors = T)
-
-#No. of rows and columns in Train
-dim(train)
-
-#No. of rows and columns in Test
-dim(test)
-
-str(train)
-
-#first prediction using mean
-sub_mean <- data.frame(User_ID = test$User_ID, Product_ID = test$Product_ID, Purchase = mean(train$Purchase))
-write.csv(sub_mean, file = "first_sub.csv", row.names = F)
-
-summary (train)
-
-summary (test)
-
-#combine data set
+# add a Purchase column to test and then combine data sets
 test[,Purchase := mean(train$Purchase)]
 c <- list(train, test)
 combin <- rbindlist(c)
+```
 
 #analyzing gender variable
 combin[,prop.table(table(Gender))] Gender
