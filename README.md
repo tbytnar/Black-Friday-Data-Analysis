@@ -1,12 +1,12 @@
-# Black Friday Data Analysis
+# Black Friday Data Analysis with H2O
 
-This is a walkthrough of my analysis of the Black Friday (2018) data from Analytics Vidhya: https://datahack.analyticsvidhya.com/contest/black-friday/
+This is a walkthrough of my analysis of the Black Friday (2018) data from Analytics Vidhya exclusively using the H2O package for data modeling: https://datahack.analyticsvidhya.com/contest/black-friday/
 
-I wanted to try my hand at analyzing real world sales data and came across the Black Firday 2018 data from Analytics Vidhya.  
+I wanted to try my hand at analyzing real world sales data and came across the Black Firday 2018 data from Analytics Vidhya.  I also wanted to take a first shot at learning how to utilize H2O for predictive modeling of this data. 
 
 ## Environment
 
-Everything here is built in R 3.5.2 "Eggshell Igloo" using RStudio on my home gaming pc (this way I'm not waiting around all day for models to execute).
+Everything here is built in R 3.5.2 "Eggshell Igloo" using RStudio on my home gaming pc (this way I'm not waiting around all day for models to generate).
 
 ## Required Packages
 
